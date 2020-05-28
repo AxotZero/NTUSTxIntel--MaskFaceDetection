@@ -1,0 +1,6 @@
+numpy
+tensorflow>=1.12.1
+opencv
+keras
+matplotlib
+pillow
