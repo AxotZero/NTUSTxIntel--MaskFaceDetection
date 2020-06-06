@@ -22,6 +22,8 @@ pillow
 ```
 
 ## How to run?
+First thing you have to do is to create a directory "./mask_detection/model-weights", and then download models to the directory from [here](https://drive.google.com/file/d/1mRS5c5K-qGSzGc_Ex-3F-oH1GJLyv_CJ/view?usp=sharing).
+Then:
 ```
 $ cd mask_detection
 $ python .\yoloface_gpu.py --video  stream
