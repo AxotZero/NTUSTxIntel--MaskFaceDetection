@@ -2,6 +2,7 @@
 *.jpg
 *.xml
 *.png
+*.mp4
 
 # General
 .DS_Store
