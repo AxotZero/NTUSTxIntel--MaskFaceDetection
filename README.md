@@ -8,8 +8,8 @@ To detect human beings wearing mask or not.
 
 ## What did I do?
 Two way approach:
-- Integrate Openvino pretrained IR model with my mask classifier (Faster, 1 frame per 0.03~0.1 seconds with i7 cpu)
-- Integrate [Yoloface project](https://github.com/sthanhng/yoloface) and my mask classifier. (Slower, 1 frame per 0.7~0.8 second with i7 cpu)
+- Integrate Openvino pretrained IR model with my mask classifier (**Faster, 1 frame per 0.03~0.1 seconds with i7 cpu**)
+- Integrate [Yoloface project](https://github.com/sthanhng/yoloface) and my mask classifier. (**Slower, 1 frame per 0.7~0.8 second with i7 cpu**)
 
 [Mask Classifier training data source](https://www.kaggle.com/andrewmvd/face-mask-detection)
 
@@ -22,7 +22,6 @@ numpy
 tensorflow>=1.12.1
 opencv
 keras
-pillow
 ```
 ### How to run?
 ```
