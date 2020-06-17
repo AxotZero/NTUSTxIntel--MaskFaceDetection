@@ -1,8 +1,8 @@
 ### macOS ###
 *.jpg
-*.xml
 *.png
-*.mp4
+mask_classifier_model_training/source/
+mask_classifier_model_training/data/
 
 # General
 .DS_Store
@@ -46,9 +46,7 @@ samples/
 *_kmeans.py
 
 # The weights of the trained models
-model-weights/
-*.weights
-*.h5
+yoloface_model/model-weights/
 
 # Output files
 outputs/
