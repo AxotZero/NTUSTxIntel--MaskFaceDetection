@@ -6,11 +6,12 @@ from collections import OrderedDict
 import numpy as np
 
 class ObjectTracker():
-	def __init__(self, maxDisappeared=50):
+	def __init__(self, maxDisappeared=50, maxDistance=50):
 		self.nextObjectID = 0
 		self.objects = OrderedDict()
 		self.disappeared = OrderedDict()
 		self.maxDisappeared = maxDisappeared
+		self.maxDistance = maxDistance
         
 	def register(self, bbox):
 		centroid = ((bbox[0]+bbox[2])//2, (bbox[1]+bbox[3])//2)
@@ -56,6 +57,9 @@ class ObjectTracker():
 
 			for (row, col) in zip(rows, cols):
 				if row in usedRows or col in usedCols:
+					continue
+
+				if D[row, col] > self.maxDistance:
 					continue
 
 				objectID = objectIDs[row]

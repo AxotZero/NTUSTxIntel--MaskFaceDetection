@@ -1,8 +1,10 @@
 ### macOS ###
 *.jpg
 *.png
+*.mp4
 mask_classifier_model_training/source/
 mask_classifier_model_training/data/
+openvino_ir_model_tracker/test_data/
 
 # General
 .DS_Store

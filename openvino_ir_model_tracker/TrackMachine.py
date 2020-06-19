@@ -1,26 +1,37 @@
-
-
 from pyimagesearch.ObjectTracker import ObjectTracker
 from pyimagesearch.TrackableObject import TrackableObject
-from imutils.video import VideoStream
-from imutils.video import FPS
 import numpy as np
 import argparse
-import imutils
 import time
 import dlib
 import cv2
 
 import datetime
 from mask_classifier_model import mask_model
-GENDERS_FOR_OPENVINO = ['Female', 'Male']
 
-def cross(p1, p2, p3):#跨立实验
+def parse_args():
+	parser = argparse.ArgumentParser()
+
+	parser.add_argument('-f', '--face_threshold', type=float, default=0.5, 
+						help='the face detection threshold')
+	
+	parser.add_argument('--input_file', type=str, default='',
+					 help='test file path')
+	
+	parser.add_argument('--save_path', type=str, default='',
+                        help='result path')
+	
+	args = parser.parse_args()
+	return args
+
+
+def cross(p1, p2, p3):
     x1=p2[0]-p1[0]
     y1=p2[1]-p1[1]
     x2=p3[0]-p1[0]
     y2=p3[1]-p1[1]
     return x1*y2-x2*y1  
+
 
 def crop_img(frame, bbox):
 	start_x, start_y, end_x, end_y = bbox
@@ -33,13 +44,14 @@ def crop_img(frame, bbox):
 
 	return face_img
 
-class FaceDetector:
 
+class FaceDetector:
 	def __init__(self, confidence_threshold=0.8):
 		self.confidence_threshold = confidence_threshold
 		self.model = self.load_model()
 
-	def load_model(self, model_path='face_detection_model/FP32/face-detection-adas-0001'):
+	def load_model(self):
+		model_path='face_detection_model/FP32/face-detection-adas-0001'
 		targetId = 0
 		weights = model_path+'.bin'
 		config = model_path+'.xml'
@@ -60,14 +72,19 @@ class FaceDetector:
 		blob = cv2.dnn.blobFromImage(cv2_image, size=(w, h), crop=False)
 		self.model.setInput(blob)
 		bboxes = self.model.forward()
+
 		bboxes = bboxes[0, 0, bboxes[0, 0, :, 2] > self.confidence_threshold][:, 3:]
 		bboxes = (bboxes * np.array([w, h, w, h])).astype(int)
 		return bboxes
+
 
 class FaceClassifier:
 	def __init__(self):
 		self.mask_classifier = self.load_mask_classifier_model()
 		self.age_gender_model = self.load_age_gender_model()
+
+		self.mask_label = ['No Mask', 'Mask']
+		self.gender_label = ['Female', 'Male']
 
 	def load_mask_classifier_model(self):
 		path = 'mask_classifier_model/mask.h5'
@@ -82,7 +99,8 @@ class FaceClassifier:
 		print('load_mask_classifier_model done.')
 		return mask_classifier
 
-	def load_age_gender_model(self, model_path='face_age_gender/FP32/age-gender-recognition-retail-0013'):
+	def load_age_gender_model(self):
+		model_path='face_age_gender/FP32/age-gender-recognition-retail-0013'
 		targetId = 0
 		weights = model_path+'.bin'
 		config = model_path+'.xml'
@@ -98,13 +116,12 @@ class FaceClassifier:
 		print('face_age_gender_model done.')
 		return face_age_gender_model
 
-
 	def classify(self, image, bboxes):
 		faces = [crop_img(image, bbox) for bbox in bboxes]
 
 		mask_classifier_input = np.array([cv2.resize(face, (128,128)) for face in faces])
 		mask_result = self.mask_classifier.predict(mask_classifier_input).flatten()
-		mask_result = [1 if result > 0.5 else 0 for result in mask_result]
+		mask_result = [self.mask_label[result > 0.5] for result in mask_result]
 
 		ages = []
 		genders = []
@@ -112,7 +129,8 @@ class FaceClassifier:
 			blob = cv2.dnn.blobFromImage(face, size=(62, 62), ddepth=cv2.CV_8U)
 			self.age_gender_model.setInput(blob)
 			detections = self.age_gender_model.forwardAndRetrieve(['prob', 'age_conv3'])
-			gender = GENDERS_FOR_OPENVINO[detections[0][0][0].argmax()]
+
+			gender = self.gender_label[detections[0][0][0].argmax()]
 			age = int(detections[1][0][0][0][0][0] * 100)
 
 			genders.append(gender)
@@ -120,15 +138,13 @@ class FaceClassifier:
 
 		return mask_result, genders, ages
 
-class Tracker:
 
+class Tracker:
 	def __init__(self, maxDisappeared=40):
 		self.trackers = [] # list of dlib.correlation_tracker()
-
 		self.centroid_tracker = ObjectTracker(maxDisappeared)
 		self.tracking_objects = {} 
 		
-
 	def refresh_trackers(self, bboxes, rgb_image):
 		self.trackers = []
 		for box in bboxes:
@@ -170,9 +186,9 @@ class Tracker:
 		for objectID in deletedIDs:
 			del self.tracking_objects[objectID]
 
-class Monitor:
 
-	def __init__(self, face_confidence=0.8, detect_frames=8, maxDisappeared=20):
+class Monitor:
+	def __init__(self, face_confidence=0.5, detect_frames=8, maxDisappeared=40):
 		self.face_detector = FaceDetector(face_confidence)
 		self.tracker = Tracker(maxDisappeared)
 		self.classifier = FaceClassifier()
@@ -202,7 +218,6 @@ class Monitor:
 		for objectID, tracking_object in tracking_objects.items():
 			if tracking_object.classified is False:
 				if self.check_cross_the_line(tracking_object):
-					tracking_object.classified = True
 					to_classified_objectIDs.append(objectID)
 		return to_classified_objectIDs
 
@@ -224,6 +239,7 @@ class Monitor:
 			mask_result, genders, ages = self.classifier.classify(image, bboxes)
 			
 			for i, objectID in enumerate(to_classified_objectIDs):
+				tracking_objects[objectID].classified = True
 				tracking_objects[objectID].mask = mask_result[i]
 				tracking_objects[objectID].gender = genders[i]
 				tracking_objects[objectID].age = ages[i]
@@ -253,7 +269,7 @@ class Monitor:
 				cv2.rectangle(image, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 2)
 				cv2.rectangle(image, (bbox[0]-2, bbox[1]-35), (bbox[2]+2, bbox[1]), (0, 255, 0), cv2.FILLED)
 
-				cv2.putText(image, 'Mask' if tracking_object.mask else 'No Mask', (bbox[0]+5, bbox[1]-20),
+				cv2.putText(image, tracking_object.mask, (bbox[0]+5, bbox[1]-20),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
 				cv2.putText(image, '%s, %d' %(tracking_object.gender, tracking_object.age) , (bbox[0]+5, bbox[1]-5),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
@@ -261,33 +277,52 @@ class Monitor:
 
 if __name__ == "__main__":
 
-	# vid = cv2.VideoCapture(0)
-	vid = cv2.VideoCapture('test_data/pe.mp4')
+	args = parse_args()
+
+	if args.input_file == '':
+		vid = cv2.VideoCapture(0)
+	else:
+		vid = cv2.VideoCapture(args.input_file)
+
 	if not vid.isOpened():
 		raise IOError("Couldn't open video or webcam")
+
+	if args.save_path != '':
+		video_fourcc = cv2.VideoWriter_fourcc('M', 'G', 'P', 'G')
+		video_fps = vid.get(cv2.CAP_PROP_FPS)
+		video_size = (int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)),int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+		save_video = cv2.VideoWriter(args.save_path, video_fourcc, video_fps, video_size)
+
 
 	monitor = Monitor()
 	cross_line = ((300, 0), (300, 500))
 	monitor.cross_line = cross_line
 
-	start_time = datetime.datetime.now()
 	while True:
+		start_time = datetime.datetime.now()
 		ret, frame = vid.read()
 		if not ret:
 			print('cannot read frame')
 			break
+
 		monitor.run(frame)
 		cv2.line(frame, cross_line[0], cross_line[1], (0, 255, 255), 2)
 		cv2.imshow('frame', frame)
 
+		if args.save_path != '':
+			save_video.write(frame)
+
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
 
-	end_time = datetime.datetime.now()
-	total_time = (end_time - start_time).seconds + (end_time - start_time).microseconds * 1E-6
-	print("spend: {}s".format(total_time))
+		end_time = datetime.datetime.now()
+		total_time = (end_time - start_time).seconds + (end_time - start_time).microseconds * 1E-6
+		print("spend: {}s".format(total_time))
 
 	vid.release()
 	cv2.destroyAllWindows()
+
+	if args.save_path != '': 
+		save_video.release()
 
 
