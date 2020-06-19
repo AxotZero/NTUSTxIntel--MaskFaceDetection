@@ -64,6 +64,7 @@ def draw_bbox(frame, start_x, start_y, end_x, end_y, have_mask):
     color = (0, 255, 0) if have_mask else (255, 0, 0)
     cv2.rectangle(frame, (start_x, start_y), (end_x, end_y), color, 2)
 
+
 def draw_info(frame, face_detected, mask_detected):
 	cv2.rectangle(frame, (5, 5), (200, 60), (0, 0, 0), cv2.FILLED)
 	
@@ -75,7 +76,6 @@ def draw_info(frame, face_detected, mask_detected):
 		cv2.putText(frame, txt, (10, (i+1)*25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (10, 175, 0), 1)
 		
 	
-	
 def detect_image(image, face_detection_model, mask_clissifier_model):
 	h, w, c = image.shape
 	blob = cv2.dnn.blobFromImage(image, size=(w, h), crop=False)
@@ -85,7 +85,8 @@ def detect_image(image, face_detection_model, mask_clissifier_model):
 	bboxes = (bboxes[0, 0, bboxes[0, 0, :, 2] > face_threshold][:, 3:] * np.array([w, h, w, h])).astype(int)
 	
 	
-	print('detected %d faces' % len(bboxes), 'at', bboxes)
+	print('detected %d faces' % len(bboxes))
+	print('===')
 	
 	if(len(bboxes) == 0):
 		draw_info(image, 0, 0)
@@ -148,6 +149,7 @@ def run_video_detection(input, save_path):
 		
 		ret, frame = vid.read()
 		if not ret:
+			print('cannot read frame')
 			break
 		
 		detect_image(frame, face_detection_model, mask_clissifier_model)
