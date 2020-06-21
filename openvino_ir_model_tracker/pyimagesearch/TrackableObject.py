@@ -9,7 +9,7 @@ class TrackableObject:
 		self.new_position = self.old_position
 		
 		self.classified = False
-		
+		self.classified_timestamp = False
 		self.mask = None
 		self.age = None
 		self.gender = None
