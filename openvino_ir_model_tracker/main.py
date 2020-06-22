@@ -6,11 +6,11 @@ import sys
 from detector import Detector
 
 from PyQt5.QtWidgets import QApplication
-from gui.TrackMachine import Gui
-
+from TrackMachine import Gui
+from data_collector import DataCollector
 
 def logging_initialize():
-	logging.basicConfig(level=logging.INFO)
+	logging.basicConfig(level=logging.DEBUG)
 
 
 def parse_args():
@@ -22,10 +22,13 @@ def parse_args():
 	parser.add_argument('-m', '--mode', type=str, choices=['crossline', 'firstface'], default='firstface')
 	
 	parser.add_argument('--input_file', type=str, default='',
-					 help='test file path')
+					 help='test_video path')
 	
-	parser.add_argument('--save_path', type=str, default='',
-                        help='result path')
+	parser.add_argument('--save_video', type=str, default='',
+                        help='save_video path')
+
+	parser.add_argument('--save_data', type=str, default='',
+                        help='save_collected_data path')
 	
 	args = parser.parse_args()
 	return args
@@ -38,7 +41,12 @@ if __name__ == "__main__":
 
 	detector = Detector()
 
-	window = Gui(detector, args)
+	if args.save_data != '':
+		collector = DataCollector(args.save_data)
+	else:
+		collector = None
+
+	window = Gui(detector, collector, args)
 	window.show()
 
 	sys.exit(app.exec_())

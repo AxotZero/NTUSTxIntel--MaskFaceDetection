@@ -2,6 +2,8 @@
 *.jpg
 *.png
 *.mp4
+*.avi
+*.csv
 mask_classifier_model_training/source/
 mask_classifier_model_training/data/
 openvino_ir_model_tracker/test_data/

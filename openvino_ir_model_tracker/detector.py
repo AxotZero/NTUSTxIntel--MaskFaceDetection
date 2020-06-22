@@ -1,34 +1,15 @@
 import numpy as np
-import argparse
-import time
-import dlib
 import cv2
+import dlib
 import logging
 import datetime
+import time
 
-from pyimagesearch.ObjectTracker import ObjectTracker
-from pyimagesearch.TrackableObject import TrackableObject
+from utils.ObjectTracker import ObjectTracker
+from utils.TrackableObject import TrackableObject
+from utils.tools import crop_img, cross
 
 from model.mask_classifier_model import mask_model
-
-def cross(p1, p2, p3):
-    x1=p2[0]-p1[0]
-    y1=p2[1]-p1[1]
-    x2=p3[0]-p1[0]
-    y2=p3[1]-p1[1]
-    return x1*y2-x2*y1  
-
-
-def crop_img(frame, bbox):
-	start_x, start_y, end_x, end_y = bbox
-	if start_x < 0: start_x = 0
-	if start_y < 0: start_y = 0
-	if end_x > frame.shape[1]: end_x = frame.shape[1]
-	if end_y > frame.shape[0]: end_y = frame.shape[0]
-	
-	face_img = frame[start_y:end_y, start_x:end_x, :]
-
-	return face_img
 
 
 class FaceDetector:
@@ -215,7 +196,7 @@ class Detector:
 	def detect(self, image):
 		rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		if self.total_frames % self.detect_frames == 0:
-		# if self.total_frames % 1 == 0:
+			logging.debug('Call detector ~~~')
 			bboxes = self.face_detector.detect(image)
 			self.tracker.refresh_trackers(bboxes, rgb)
 		else:
@@ -231,9 +212,11 @@ class Detector:
 			
 			for i, objectID in enumerate(to_classified_objectIDs):
 				tracking_objects[objectID].classified = True
+				tracking_objects[objectID].classified_timestamp = int(time.time())
 				tracking_objects[objectID].mask = mask_result[i]
 				tracking_objects[objectID].gender = genders[i]
 				tracking_objects[objectID].age = ages[i]
+				
 				logging.info('ID: %d' % objectID)
 				logging.info('masks: %s' % mask_result)
 				logging.info('genders: %s' % genders[i])
