@@ -18,7 +18,7 @@ opencv
 keras
 dlib
 pandas
-
+pyqt5
 ```
 
 # How to run?
