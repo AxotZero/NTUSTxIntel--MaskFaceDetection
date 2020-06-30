@@ -53,7 +53,8 @@ $ python .\main.py
 
 ![](https://i.imgur.com/X1MBzXi.png)
 
-![](https://i.imgur.com/N1ifxZI.png)
+![](https://i.imgur.com/mBV4xwB.png)
+
 
 ![](https://i.imgur.com/5r6ftLp.png)
 ![](https://i.imgur.com/67J3Dea.png)
