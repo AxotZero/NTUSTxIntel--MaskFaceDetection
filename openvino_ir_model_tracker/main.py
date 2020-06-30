@@ -19,8 +19,6 @@ def parse_args():
 	parser.add_argument('-f', '--face_threshold', type=float, default=0.5, 
 						help='the face detection threshold')
 
-	parser.add_argument('-m', '--mode', type=str, choices=['crossline', 'firstface'], default='firstface')
-	
 	parser.add_argument('--input_file', type=str, default='',
 					 help='test_video path')
 	
