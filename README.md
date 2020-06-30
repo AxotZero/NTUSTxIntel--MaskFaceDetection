@@ -1,57 +1,86 @@
-# NTUST--MaskFaceDetection
-To detect human beings wearing mask or not. 
+# Masked Face Detection(openvino)
 
-## Result
-| no mask | wearing mask | blablabl|
-| -------- | -------- | --- |
-|  ![](https://i.imgur.com/MwvkHV5.jpg) | ![](https://i.imgur.com/qRPOp6o.jpg)| ![](https://i.imgur.com/tRR7TnD.jpg)|
+## Objective
+Collect the people’s’ information while they get into/out a place e.g. convenience store, school, etc. And then we can do some analysis.
+People’s’ information contains
+- Wearing mask or not
+- Age
+- Gender
+- Timestamp
 
-## What did I do?
-Two way approach:
-- Integrate Openvino pretrained IR model with my mask classifier (**Faster, 1 frame per 0.03~0.1 seconds with i7 cpu**)
-- Integrate [Yoloface project](https://github.com/sthanhng/yoloface) and my mask classifier. (**Slower, 1 frame per 0.7~0.8 second with i7 cpu**)
-
-[Mask Classifier training data source](https://www.kaggle.com/andrewmvd/face-mask-detection)
-
-
-## For openvino project
-### Requirements
+![](https://i.imgur.com/7olh273.png)
+# Requirements
 Install [Openvino](https://docs.openvinotoolkit.org/latest/index.html) first.
 ```
 numpy
 tensorflow>=1.12.1
 opencv
 keras
+dlib
+pandas
+pyqt5
 ```
-### How to run?
+
+# How to run?
 ```
-$ cd openvino_ir_model
+$ cd mask_detection
 $ {your path to openvino directory}\bin\setupvars.bat
-$ python .\mask_detector.py
+$ python .\main.py
 ```
+
 | argument | default | description |
 | -------- | -------- | -------- |
-| --mode     | 'webcam'     | you can choose which mode('webcam', 'image', 'video') you want to try   |
-| -f, --face_threshold     |  0.5    |  IR model will give each face a confidence, this threshold can restrict the face to display |
-| --input_file     | ''     | In image or video model, you have to set an input_file path     |
-| -save_path | ''  | Output file path of your demo  |
+| face_threshold     |  0.5    |  IR face-detection model will give each face a confidence, this threshold can restrict the face to display |
+| input_file     | ''     | test_video path  (\*.mp4, \*.avi), if it's not specified, we will read webcam.|
+| save_video | ''  | save_video path(\*.mp4, \*.avi)|
+| save_data | ''  | save_collected_data path(\*.csv) |
+
+## What did I do?
+1. Train a MaskFaceClassifier
+    - In *mask_classifier_model_training*
+3. Use openvino pretrained model to detect face and classify face age and gender
+    - [face-detection-adas-0001](https://docs.openvinotoolkit.org/2019_R1/_face_detection_adas_0001_description_face_detection_adas_0001.html)
+    - [age-gender-recognition-retail-0013](https://docs.openvinotoolkit.org/latest/_models_intel_age_gender_recognition_retail_0013_description_age_gender_recognition_retail_0013.html)
+4. Add Tracker to speed up
+    - [Pyimagesearch-CentroidTracker](https://www.pyimagesearch.com/2018/07/23/simple-object-tracking-with-opencv/)
+
+4. Add crossline and build a gui (while a person crossing the line, right side will pop up the classify result)
+5. Add DataCollector to collect data from classifier
 
 
+## For classifier training
+[Data source](https://www.kaggle.com/andrewmvd/face-mask-detection)
 
-## For yoloface project
-### Requirements
-```
-numpy
-tensorflow>=1.12.1
-opencv
-keras
-matplotlib
-pillow
-```
-### How to run?
-First thing you have to do is to create a directory "./yoloface_model/model-weights", and then download models to the directory from [here](https://drive.google.com/file/d/1mRS5c5K-qGSzGc_Ex-3F-oH1GJLyv_CJ/view?usp=sharing).
-Then:
-```
-$ cd yoloface_model
-$ python .\yoloface_gpu.py --video  stream
-```
+![](https://i.imgur.com/X1MBzXi.png)
+
+![](https://i.imgur.com/mBV4xwB.png)
+
+
+![](https://i.imgur.com/5r6ftLp.png)
+![](https://i.imgur.com/67J3Dea.png)
+
+## For tracker
+Pros: 
+- Have higher speed. 
+- Detection is more computation expensive than tracker. (And we only have cpu.)
+
+Cons:
+- Have lower accuracy.
+- Tracker track the face by correlation of image
+
+![](https://i.imgur.com/xzh6zbp.png)
+![](https://i.imgur.com/GhooQER.png)
+
+![](https://i.imgur.com/x8USO79.png)
+![](https://i.imgur.com/ZIj8MhR.png)
+
+![](https://i.imgur.com/lJPNJrm.png)
+![](https://i.imgur.com/CBGeMtJ.png)
+
+## Data collected
+![](https://i.imgur.com/e4vibjz.png)
+
+## What can we do after collect these data?
+![](https://i.imgur.com/61qgRSB.png)
+
+
