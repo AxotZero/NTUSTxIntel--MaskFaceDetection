@@ -1,7 +1,6 @@
 # Masked Face Detection(openvino)
 
-## Get the Best Class-project from Intel~! 
-![](https://i.imgur.com/WwXylQy.png)
+## Get the Best Class-project Award from Intel~! 
 
 ## Objective
 Collect the people’s’ information while they get into/out a place e.g. convenience store, school, etc. And then we can do some analysis.
